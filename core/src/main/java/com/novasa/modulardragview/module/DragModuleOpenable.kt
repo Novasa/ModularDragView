@@ -1,5 +1,6 @@
 package com.novasa.modulardragview.module
 
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.IdRes
@@ -52,6 +53,19 @@ open class DragModuleOpenable(dragView: DragView, moduleView: View, direction: I
 
             // Returning true to reset drag view
         } else true
+    }
+
+    override fun onSwipe(direction: Int, x: Float, v: Float, div: Float): Boolean {
+        if (direction == this.direction) {
+            Log.d("TAG", "open")
+            open(true)
+
+        } else {
+            Log.d("TAG", "close")
+            close(true)
+        }
+
+        return true
     }
 
     @JvmOverloads

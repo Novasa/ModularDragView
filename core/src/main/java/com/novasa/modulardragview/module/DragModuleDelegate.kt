@@ -10,31 +10,21 @@ import com.novasa.modulardragview.view.DragView
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 abstract class DragModuleDelegate : DragView.Delegate {
 
-    protected lateinit var dragView: DragView
+    lateinit var dragView: DragView
+        private set
 
     @SuppressLint("UseSparseArrays")
     private val dragModules = HashMap<Int, DragModule>()
-    private var currentDragDirection: Int = 0
 
     private var isTeasing: Boolean = false
     private val teaseInterpolator by lazy {
         AccelerateDecelerateInterpolator()
     }
 
-    val isOpen: Boolean
-        get() = dragView.dragDirection != DragView.DIRECTION_NONE
-
-    var isDragEnabled: Boolean
-        get() = dragView.isDragEnabled
-        set(enabled) {
-            dragView.isDragEnabled = enabled
-        }
-
     /** If the view has modules on either side, this determines if the drag can continue from one to the other uninterrupted
      *
      * Default = false
      */
-    var allowCrossDrag = false
 
     protected abstract fun createDragModule(dragView: DragView, direction: Int): DragModule?
 
@@ -109,48 +99,40 @@ abstract class DragModuleDelegate : DragView.Delegate {
         }
     }
 
-    override fun onSetup() = dragModules.values.forEach {
+    override fun onSetup(dragView: DragView) = dragModules.values.forEach {
         it.onSetup()
     }
 
-    override fun canDrag(direction: Int): Boolean = dragModules[direction] != null
+    override fun canDrag(dragView: DragView, direction: Int): Boolean = dragModules[direction] != null
 
-    override fun getMaxDrag(direction: Int): Float = dragModules[direction]?.maxDrag ?: 0f
+    override fun getMaxDrag(dragView: DragView, direction: Int): Float = dragModules[direction]?.maxDrag ?: 0f
 
-    override fun dragFactor(direction: Int, x0: Float, dx: Float): Float = dragModules[direction]?.dragFactor(x0, dx)
+    override fun dragFactor(dragView: DragView, direction: Int, x0: Float, dx: Float): Float = dragModules[direction]?.dragFactor(x0, dx)
         ?: 1f
 
-    override fun onDragBegin(direction: Int) {
-        currentDragDirection = direction
+    override fun onDragBegin(dragView: DragView, direction: Int) {
+
     }
 
-    override fun onDragged(direction: Int, x0: Float, x1: Float): Float {
-
+    override fun onWillDrag(dragView: DragView, direction: Int, x0: Float, x1: Float): Float {
         cancelTease()
-
-        // Block drag when dragging to a different side than we started
-        return if (!allowCrossDrag && direction != currentDragDirection) 0f else x1
+        return x1
     }
 
-    override fun onChanged(direction: Int, x0: Float, x1: Float, dragged: Boolean) {
+    override fun onChanged(dragView: DragView, direction: Int, x0: Float, x1: Float, dragged: Boolean) {
         dragModules[direction]?.onChanged(x0, x1, dragged)
     }
 
-    override fun onReset() {
-        currentDragDirection = DragView.DIRECTION_NONE
+    override fun onReset(dragView: DragView) {
         dragModules.values.forEach {
             it.onReset()
         }
     }
 
-    override fun onSwipe(direction: Int, x: Float, v: Float, div: Float): Boolean {
-        if (direction == currentDragDirection) {
-            dragModules[direction]?.onSwipe(x, v, div)
-        }
-        return false
-    }
+    override fun onSwipe(dragView: DragView, dragDirection: Int, swipeDirection: Int, x: Float, v: Float, div: Float): Boolean =
+        dragModules[dragDirection]?.onSwipe(swipeDirection, x, v, div) ?: false
 
-    override fun onDragEnded(direction: Int, x: Float) {
+    override fun onDragEnded(dragView: DragView, direction: Int, x: Float) {
 
         var shouldReset = true
 
@@ -163,7 +145,7 @@ abstract class DragModuleDelegate : DragView.Delegate {
         }
     }
 
-    override fun onClick() {
+    override fun onClick(dragView: DragView) {
 
     }
 }

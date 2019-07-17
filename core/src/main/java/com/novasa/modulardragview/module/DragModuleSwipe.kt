@@ -32,10 +32,12 @@ open class DragModuleSwipe(dragView: DragView, moduleView: View, direction: Int)
     override val teaseX: Float
         get() = OUT_BOUNDARY * direction
 
-
-    override fun onSwipe(x: Float, v: Float, div: Float): Boolean {
-        swipe(x, v)
-        return true
+    override fun onSwipe(direction: Int, x: Float, v: Float, div: Float): Boolean {
+        return if (direction == this.direction) {
+            // We only want to initiate a swipe if it's in direction of the currently open module.
+            swipe(x, v)
+            true
+        } else false
     }
 
     override fun onDragEnded(x: Float): Boolean {

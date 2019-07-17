@@ -66,6 +66,10 @@ abstract class DragModule(val dragView: DragView, val moduleView: View, val dire
         }
     }
 
+    fun close(animate: Boolean) {
+        dragView.reset(animate)
+    }
+
     /* Overridable methods */
 
     open fun onSetup() {}
@@ -85,14 +89,15 @@ abstract class DragModule(val dragView: DragView, val moduleView: View, val dire
     }
 
     /**
-     * Called if the drag module is swiped to its assigned direction.
+     * Called if the drag module is swiped.
      *
-     * @param x   normalized x value of the drag view at the time of the swipe release.
-     * @param v   the swipe velocity in pixels/millisecond
+     * @param direction The direction of the swipe
+     * @param x normalized x value of the drag view at the time of the swipe release.
+     * @param v the swipe velocity in pixels/millisecond
      * @param div the swipe velocity in dip/millisecond
      * @return true to consume the event, false to end the drag as normal.
      */
-    open fun onSwipe(x: Float, v: Float, div: Float): Boolean = false
+    open fun onSwipe(direction: Int, x: Float, v: Float, div: Float): Boolean = false
 
     /**
      * Called when the drag ends (i.e. the user lifts the finger)
