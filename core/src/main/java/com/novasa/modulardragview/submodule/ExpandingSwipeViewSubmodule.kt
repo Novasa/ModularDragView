@@ -5,11 +5,12 @@ import android.view.animation.AccelerateInterpolator
 import com.novasa.modulardragview.extension.denormalized
 import com.novasa.modulardragview.extension.normalizedClamped
 import com.novasa.modulardragview.module.DragModule
-import com.novasa.modulardragview.module.DragModuleSwipe
+import com.novasa.modulardragview.module.SwipeDragModule
+import com.novasa.modulardragview.view.DragView
 import kotlin.math.abs
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
-class SubmoduleExpandingSwipeLabel(val label: View) : DragModule.Submodule {
+class ExpandingSwipeViewSubmodule(val view: View) : DragModule.Submodule {
 
     companion object {
 
@@ -29,27 +30,35 @@ class SubmoduleExpandingSwipeLabel(val label: View) : DragModule.Submodule {
     private val interpolator = AccelerateInterpolator()
 
     override fun onChanged(module: DragModule, x0: Float, x1: Float, dragged: Boolean) {
-        val ax = abs(x1)
-
         if (module.isWithinSwipeDirection(x1)) {
-            val labelX1 = TRANSLATE_X0 * module.direction + x1 * TRANSLATE_FACTOR
-            label.x = labelX1 * module.dragWidth
+
+            val ax = abs(x1)
+            val dragWidth = module.dragWidth.toFloat()
+            val w: Float = (view.width / dragWidth)
+
+            val labelX1: Float = when(module.direction) {
+                DragView.DIRECTION_RIGHT -> TRANSLATE_X0 + x1 * TRANSLATE_FACTOR
+                DragView.DIRECTION_LEFT -> 1f - w - TRANSLATE_X0 + x1 * TRANSLATE_FACTOR
+                else -> throw IllegalArgumentException("Unsupported drag direction: ${module.direction}")
+            }
+
+            view.x = labelX1 * module.dragWidth
 
             if (ax <= IN_BOUNDARY) {
                 val a = ax.normalizedClamped(0f, IN_BOUNDARY)
-                label.alpha = a
+                view.alpha = a
 
-            } else if (ax > IN_BOUNDARY && ax <= DragModuleSwipe.OUT_BOUNDARY && label.alpha < 1f) {
-                label.alpha = 1f
+            } else if (ax > IN_BOUNDARY && ax <= SwipeDragModule.OUT_BOUNDARY && view.alpha < 1f) {
+                view.alpha = 1f
 
-            } else if (ax > DragModuleSwipe.OUT_BOUNDARY) {
-                var out = ax.normalizedClamped(DragModuleSwipe.OUT_BOUNDARY, 1f)
+            } else if (ax > SwipeDragModule.OUT_BOUNDARY) {
+                var out = ax.normalizedClamped(SwipeDragModule.OUT_BOUNDARY, 1f)
                 out = interpolator.getInterpolation(out)
 
                 val a = 1f - out
                 val scale = out.denormalized(1f, SCALE_MAX)
 
-                with(label) {
+                with(view) {
                     alpha = a
                     scaleX = scale
                     scaleY = scale
@@ -59,7 +68,7 @@ class SubmoduleExpandingSwipeLabel(val label: View) : DragModule.Submodule {
     }
 
     override fun onReset(module: DragModule) {
-        with(label) {
+        with(view) {
             x = TRANSLATE_X0
             alpha = 0f
             scaleX = 1f

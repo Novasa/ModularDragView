@@ -12,7 +12,7 @@ import kotlin.math.abs
  * Created by mikkelschlager on 17/08/16.
  */
 @Suppress("MemberVisibilityCanBePrivate", "unused")
-open class DragModuleSwipe(dragView: DragView, moduleView: View, direction: Int) : DragModule(dragView, moduleView, direction) {
+open class SwipeDragModule(dragView: DragView, moduleView: View, direction: Int) : DragModule(dragView, moduleView, direction) {
 
     companion object {
 
@@ -21,8 +21,8 @@ open class DragModuleSwipe(dragView: DragView, moduleView: View, direction: Int)
     }
 
     interface Callback {
-        fun onViewSwipeStarted()
-        fun onViewSwipeFinished()
+        fun onModuleSwipeStarted(module: SwipeDragModule)
+        fun onModuleSwipeFinished(module: SwipeDragModule)
     }
 
     var callback: Callback? = null
@@ -64,10 +64,10 @@ open class DragModuleSwipe(dragView: DragView, moduleView: View, direction: Int)
             interp = null
         }
 
-        callback?.onViewSwipeStarted()
+        callback?.onModuleSwipeStarted(this)
 
         dragView.animateToPosition(direction.toFloat(), duration, interp) {
-            callback?.onViewSwipeFinished()
+            callback?.onModuleSwipeFinished(this)
         }
     }
 

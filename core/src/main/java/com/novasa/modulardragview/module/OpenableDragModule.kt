@@ -12,7 +12,7 @@ import kotlin.math.abs
  * A drag module that can be opened
  * Created by mikkelschlager on 17/08/16.
  */
-open class DragModuleOpenable(dragView: DragView, moduleView: View, direction: Int, val contentView: View) : DragModule(dragView, moduleView, direction) {
+open class OpenableDragModule(dragView: DragView, moduleView: View, direction: Int, val contentView: View) : DragModule(dragView, moduleView, direction) {
 
     companion object {
 
@@ -40,7 +40,7 @@ open class DragModuleOpenable(dragView: DragView, moduleView: View, direction: I
     override fun dragFactor(x0: Float, dx: Float): Float {
         val ax = abs(x0)
         val w = contentWidth
-        return if (ax > w && dx * direction > 0) {
+        return if (ax > w && dx * direction > 0f) {
             1f - ax.normalizedClamped(w, maxDrag)
         } else super.dragFactor(x0, dx)
     }

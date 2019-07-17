@@ -6,7 +6,7 @@ import com.novasa.modulardragview.module.DragModule
 import com.novasa.modulardragview.view.DragView
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
-class SubmoduleTranslatingContentView(val contentView: View) : DragModule.Submodule {
+class TranslatingContentViewSubmodule(val contentView: View) : DragModule.Submodule {
 
     override fun onChanged(module: DragModule, x0: Float, x1: Float, dragged: Boolean) {
         if (module.isWithinSwipeDirection(x1)) {

@@ -3,12 +3,13 @@ package com.novasa.modulardragview.module
 import android.view.View
 import com.novasa.modulardragview.extension.normalizedClamped
 import com.novasa.modulardragview.view.DragView
+import kotlin.math.abs
 
 /**
  * Created by mikkelschlager on 17/08/16.
  */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
-open class DragModuleTicker(dragView: DragView, moduleView: View, direction: Int) : DragModule(dragView, moduleView, direction) {
+open class TickerDragModule(dragView: DragView, moduleView: View, direction: Int) : DragModule(dragView, moduleView, direction) {
 
     companion object {
 
@@ -26,22 +27,20 @@ open class DragModuleTicker(dragView: DragView, moduleView: View, direction: Int
         get() = MAX_DRAG
 
     interface Callback {
-        fun onTicked()
+        fun onModuleTicked(module: TickerDragModule)
     }
 
     override fun dragFactor(x0: Float, dx: Float): Float {
-
-        val dirX0: Float = x0 * direction
-
-        return if (dirX0 > MIN_DRAG && dx * direction > 0f) {
-            1f - dirX0.normalizedClamped(MIN_DRAG, MAX_DRAG)
+        val ax = abs(x0)
+        return if (ax > MIN_DRAG && dx * direction > 0f) {
+            1f - ax.normalizedClamped(MIN_DRAG, maxDrag)
         } else super.dragFactor(x0, dx)
     }
 
     override fun onDragEnded(x: Float): Boolean {
         if (x * direction > MIN_DRAG) {
             dragView.isDragEnabled = false
-            if (callback != null) callback!!.onTicked()
+            callback?.onModuleTicked(this)
         }
 
         return true

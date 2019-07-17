@@ -6,7 +6,7 @@
     android:background="@color/colorPrimaryDark">
 
     <Button
-        android:id="@+id/cell_drag_button"
+        android:id="@+id/cellDragButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
