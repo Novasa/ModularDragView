@@ -2,6 +2,7 @@ package com.novasa.modulardragview.module
 
 import android.annotation.SuppressLint
 import android.view.animation.AccelerateDecelerateInterpolator
+import androidx.annotation.CallSuper
 import com.novasa.modulardragview.view.DragView
 
 /**
@@ -72,6 +73,7 @@ abstract class DragModuleDelegate : DragView.Delegate {
         }
     }
 
+    @CallSuper
     override fun onDragViewInit(dragView: DragView) {
         this.dragView = dragView
 
@@ -94,14 +96,18 @@ abstract class DragModuleDelegate : DragView.Delegate {
         }
     }
 
+    @CallSuper
     override fun onDragViewSetup(dragView: DragView) = dragModules.values.forEach {
         it.onSetup()
     }
 
+    @CallSuper
     override fun canDragViewDrag(dragView: DragView, direction: Int): Boolean = dragModules[direction] != null
 
+    @CallSuper
     override fun getDragViewMaxDrag(dragView: DragView, direction: Int): Float = dragModules[direction]?.maxDrag ?: 0f
 
+    @CallSuper
     override fun getDragViewDragFactor(dragView: DragView, direction: Int, x0: Float, dx: Float): Float = dragModules[direction]?.dragFactor(x0, dx)
         ?: 1f
 
@@ -109,24 +115,29 @@ abstract class DragModuleDelegate : DragView.Delegate {
 
     }
 
+    @CallSuper
     override fun onDragViewWillDrag(dragView: DragView, direction: Int, x0: Float, x1: Float): Float {
         cancelTease()
         return x1
     }
 
+    @CallSuper
     override fun onDragViewChanged(dragView: DragView, direction: Int, x0: Float, x1: Float, dragged: Boolean) {
         dragModules[direction]?.onChanged(x0, x1, dragged)
     }
 
+    @CallSuper
     override fun onDragViewReset(dragView: DragView) {
         dragModules.values.forEach {
             it.onReset()
         }
     }
 
+    @CallSuper
     override fun onDragViewSwipe(dragView: DragView, dragDirection: Int, swipeDirection: Int, x: Float, v: Float, div: Float): Boolean =
         dragModules[dragDirection]?.onSwipe(swipeDirection, x, v, div) ?: false
 
+    @CallSuper
     override fun onDragViewDragEnd(dragView: DragView, direction: Int, x: Float) {
 
         var shouldReset = true
