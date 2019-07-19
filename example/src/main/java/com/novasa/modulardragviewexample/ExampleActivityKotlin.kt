@@ -79,7 +79,7 @@ class ExampleActivityKotlin : AppCompatActivity() {
                         }
                     }
 
-                override fun getTopView(dragView: DragView): View =
+                override fun getDragViewTopView(dragView: DragView): View =
                     LayoutInflater.from(dragView.context).inflate(R.layout.cell_item, dragView, false)
             }
 
@@ -92,7 +92,13 @@ class ExampleActivityKotlin : AppCompatActivity() {
 
         class OpenableViewHolder(dragView: DragView) : DragViewHolder(dragView) {
             override fun dragModule(dragView: DragView, direction: Int): DragModule? =
-                OpenableDragModule(dragView, LayoutInflater.from(dragView.context).inflate(R.layout.cell_drag_button, dragView, false), direction, R.id.cellDragButton).also {
+                object : OpenableDragModule(dragView, LayoutInflater.from(dragView.context).inflate(R.layout.cell_drag_button, dragView, false), direction) {
+
+                    override fun getContentView(dragView: DragView, moduleView: View, direction: Int): View {
+                        return moduleView.cellDragButton
+                    }
+
+                }.also {
 
                     with(it.moduleView.cellDragButton) {
                         text = when (direction) {

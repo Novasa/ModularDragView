@@ -21,11 +21,6 @@ abstract class DragModuleDelegate : DragView.Delegate {
         AccelerateDecelerateInterpolator()
     }
 
-    /** If the view has modules on either side, this determines if the drag can continue from one to the other uninterrupted
-     *
-     * Default = false
-     */
-
     protected abstract fun createDragModule(dragView: DragView, direction: Int): DragModule?
 
     fun getDragModule(direction: Int): DragModule? = dragModules[direction]
@@ -77,7 +72,7 @@ abstract class DragModuleDelegate : DragView.Delegate {
         }
     }
 
-    override fun init(dragView: DragView) {
+    override fun onDragViewInit(dragView: DragView) {
         this.dragView = dragView
 
         with(dragModules) {
@@ -99,40 +94,40 @@ abstract class DragModuleDelegate : DragView.Delegate {
         }
     }
 
-    override fun onSetup(dragView: DragView) = dragModules.values.forEach {
+    override fun onDragViewSetup(dragView: DragView) = dragModules.values.forEach {
         it.onSetup()
     }
 
-    override fun canDrag(dragView: DragView, direction: Int): Boolean = dragModules[direction] != null
+    override fun canDragViewDrag(dragView: DragView, direction: Int): Boolean = dragModules[direction] != null
 
-    override fun getMaxDrag(dragView: DragView, direction: Int): Float = dragModules[direction]?.maxDrag ?: 0f
+    override fun getDragViewMaxDrag(dragView: DragView, direction: Int): Float = dragModules[direction]?.maxDrag ?: 0f
 
-    override fun dragFactor(dragView: DragView, direction: Int, x0: Float, dx: Float): Float = dragModules[direction]?.dragFactor(x0, dx)
+    override fun getDragViewDragFactor(dragView: DragView, direction: Int, x0: Float, dx: Float): Float = dragModules[direction]?.dragFactor(x0, dx)
         ?: 1f
 
-    override fun onDragBegin(dragView: DragView, direction: Int) {
+    override fun onDragViewDragBegin(dragView: DragView, direction: Int) {
 
     }
 
-    override fun onWillDrag(dragView: DragView, direction: Int, x0: Float, x1: Float): Float {
+    override fun onDragViewWillDrag(dragView: DragView, direction: Int, x0: Float, x1: Float): Float {
         cancelTease()
         return x1
     }
 
-    override fun onChanged(dragView: DragView, direction: Int, x0: Float, x1: Float, dragged: Boolean) {
+    override fun onDragViewChanged(dragView: DragView, direction: Int, x0: Float, x1: Float, dragged: Boolean) {
         dragModules[direction]?.onChanged(x0, x1, dragged)
     }
 
-    override fun onReset(dragView: DragView) {
+    override fun onDragViewReset(dragView: DragView) {
         dragModules.values.forEach {
             it.onReset()
         }
     }
 
-    override fun onSwipe(dragView: DragView, dragDirection: Int, swipeDirection: Int, x: Float, v: Float, div: Float): Boolean =
+    override fun onDragViewSwipe(dragView: DragView, dragDirection: Int, swipeDirection: Int, x: Float, v: Float, div: Float): Boolean =
         dragModules[dragDirection]?.onSwipe(swipeDirection, x, v, div) ?: false
 
-    override fun onDragEnded(dragView: DragView, direction: Int, x: Float) {
+    override fun onDragViewDragEnd(dragView: DragView, direction: Int, x: Float) {
 
         var shouldReset = true
 
@@ -145,7 +140,7 @@ abstract class DragModuleDelegate : DragView.Delegate {
         }
     }
 
-    override fun onClick(dragView: DragView) {
+    override fun onDragViewTopViewClick(dragView: DragView) {
 
     }
 }

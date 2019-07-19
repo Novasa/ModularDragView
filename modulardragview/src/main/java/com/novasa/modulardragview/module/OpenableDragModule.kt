@@ -3,7 +3,6 @@ package com.novasa.modulardragview.module
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.IdRes
 import com.novasa.modulardragview.extension.normalizedClamped
 import com.novasa.modulardragview.view.DragView
 import kotlin.math.abs
@@ -12,7 +11,8 @@ import kotlin.math.abs
  * A drag module that can be opened
  * Created by mikkelschlager on 17/08/16.
  */
-open class OpenableDragModule(dragView: DragView, moduleView: View, direction: Int, val contentView: View) : DragModule(dragView, moduleView, direction) {
+@Suppress("MemberVisibilityCanBePrivate")
+abstract class OpenableDragModule(dragView: DragView, moduleView: View, direction: Int) : DragModule(dragView, moduleView, direction) {
 
     companion object {
 
@@ -20,7 +20,20 @@ open class OpenableDragModule(dragView: DragView, moduleView: View, direction: I
         private const val ADDITIONAL_MAX_DRAG = .15f
     }
 
-    constructor(dragView: DragView, moduleView: View, direction: Int, @IdRes contentViewId: Int) : this(dragView, moduleView, direction, moduleView.findViewById<View>(contentViewId))
+    val contentView: View by lazy {
+        getContentView(dragView, moduleView, direction).also {
+            if (it.parent !== moduleView && moduleView is ViewGroup) {
+                moduleView.addView(contentView)
+            }
+        }
+    }
+
+    /**
+     * Should return the view that determines the width of the openable container.
+     *
+     * It should typically be a child of the module view.
+     */
+    abstract fun getContentView(dragView: DragView, moduleView: View, direction: Int): View
 
     protected val contentWidth: Float
         get() = contentView.width / dragWidth.toFloat()
@@ -30,12 +43,6 @@ open class OpenableDragModule(dragView: DragView, moduleView: View, direction: I
 
     override val maxDrag: Float
         get() = contentWidth + ADDITIONAL_MAX_DRAG
-
-    init {
-        if (contentView.parent !== moduleView && moduleView is ViewGroup) {
-            moduleView.addView(contentView)
-        }
-    }
 
     override fun dragFactor(x0: Float, dx: Float): Float {
         val ax = abs(x0)
