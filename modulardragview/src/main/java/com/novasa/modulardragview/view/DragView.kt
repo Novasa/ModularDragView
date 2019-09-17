@@ -21,8 +21,13 @@ class DragView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : Fram
 
     companion object {
 
+        /** Indicates no drag, or that the view is drag view is closed. */
         const val DIRECTION_NONE = 0
+
+        /** Indicates that the view is being dragged right to left, or that the drag view is opened in the corresponding the direction. */
         const val DIRECTION_LEFT = -1
+
+        /** Indicates that the view is being dragged left to right, or that the drag view is opened in the corresponding the direction. */
         const val DIRECTION_RIGHT = 1
 
         private const val SNAP_MIN_DURATION = 50
@@ -30,6 +35,7 @@ class DragView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : Fram
 
         private const val SWIPE_DEFAULT_MIN_VELOCITY = 1.5f
 
+        @JvmStatic
         fun getDirection(x: Float): Int = when {
             x > 0 -> DIRECTION_RIGHT
             x < 0 -> DIRECTION_LEFT
@@ -52,7 +58,7 @@ class DragView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : Fram
                 }
 
                 doOnLayout {
-                    d.onDragViewSetup(this)
+                    d.onDragViewLayout(this)
                 }
             }
         }
@@ -68,9 +74,9 @@ class DragView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : Fram
     private var valueAnimator: ValueAnimator? = null
 
     val isOpen: Boolean
-        get() = currentDragDirection != DIRECTION_NONE
+        get() = currentDirection != DIRECTION_NONE
 
-    var currentDragDirection = DIRECTION_NONE
+    var currentDirection = DIRECTION_NONE
         private set
 
     /**
@@ -163,7 +169,7 @@ class DragView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : Fram
                 parent.requestDisallowInterceptTouchEvent(false)
 
                 if (!didSwipe) {
-                    delegate?.onDragViewDragEnd(this, currentDragDirection, currentDragX)
+                    delegate?.onDragViewDragEnd(this, currentDirection, currentDragX)
                 }
             }
 
@@ -212,7 +218,7 @@ class DragView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : Fram
                         if (adiv >= swipeMinVelocity) {
                             val swipeDirection = getDirection(v)
 
-                            didSwipe = delegate?.onDragViewSwipe(this, currentDragDirection, swipeDirection, currentDragX, av, adiv) ?: false
+                            didSwipe = delegate?.onDragViewSwipe(this, currentDirection, swipeDirection, currentDragX, av, adiv) ?: false
                         }
                     }
                 }
@@ -286,11 +292,11 @@ class DragView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : Fram
         }
 
         initialDragDirection = direction
-        currentDragDirection = direction
+        currentDirection = direction
         dragDidBegin = true
         parent.requestDisallowInterceptTouchEvent(true)
 
-        delegate?.onDragViewDragBegin(this, currentDragDirection)
+        delegate?.onDragViewDragBegin(this, currentDirection)
 
         prevX = x1
 
@@ -303,33 +309,29 @@ class DragView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : Fram
         val normalizedX0: Float = x0 / dragViewWidth
         var normalizedDx: Float = dx / dragViewWidth
 
-        val direction = getDirection(normalizedX0 + normalizedDx)
-        if (direction != currentDragDirection) {
+        var direction = getDirection(normalizedX0 + normalizedDx)
+        if (direction != currentDirection) {
             // Direction has changed mid drag
-            currentDragDirection = if (direction == DIRECTION_NONE
-                || direction == initialDragDirection
-                || (allowCrossDrag && delegate?.canDragViewDrag(this, direction) == true)) {
-
-                direction
-
-            } else {
-                DIRECTION_NONE
+            if (direction != DIRECTION_NONE && direction != initialDragDirection && (!allowCrossDrag || delegate?.canDragViewDrag(this, direction) == false)) {
+                direction = DIRECTION_NONE
             }
         }
 
-        if (currentDragDirection != DIRECTION_NONE) {
-            val factor = delegate?.getDragViewDragFactor(this, currentDragDirection, normalizedX0, normalizedDx) ?: 1f
-            val max: Float = delegate?.getDragViewMaxDrag(this, currentDragDirection) ?: 0f
+        if (direction != DIRECTION_NONE) {
+            val dragDirection = getDirection(normalizedDx)
+
+            val factor = delegate?.getDragViewDragFactor(this, direction, dragDirection, normalizedX0, normalizedDx) ?: 1f
+            val max: Float = delegate?.getDragViewMaxDrag(this, direction) ?: 0f
 
             normalizedDx *= factor
 
             var normalizedX1 = normalizedX0 + normalizedDx
 
             if (max > 0f && abs(normalizedX1) > max) {
-                normalizedX1 = max * currentDragDirection
+                normalizedX1 = max * direction
             }
 
-            normalizedX1 = delegate?.onDragViewWillDrag(this, currentDragDirection, normalizedX0, normalizedX1) ?: normalizedX1
+            normalizedX1 = delegate?.onDragViewWillDrag(this, direction, normalizedX0, normalizedX1) ?: normalizedX1
             setDragX(normalizedX1)
 
         } else {
@@ -349,26 +351,25 @@ class DragView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : Fram
 
             topView.x = absoluteX1
 
-            if (currentDragX == 0f && !dragDidBegin) {
-                currentDragDirection = DIRECTION_NONE
-            }
+            currentDirection = getDirection(currentDragX)
 
-            delegate?.onDragViewChanged(this, currentDragDirection, normalizedX0, currentDragX, dragDidBegin)
+            delegate?.onDragViewChanged(this, currentDirection, normalizedX0, currentDragX, dragDidBegin)
 
-            if (currentDragDirection == DIRECTION_NONE) {
+            if (currentDirection == DIRECTION_NONE) {
                 delegate?.onDragViewReset(this)
             }
         }
     }
 
     @JvmOverloads
-    fun reset(animate: Boolean = false) {
+    fun reset(animate: Boolean = false, end: (() -> Unit)? = null) {
         if (animate) {
-            snapToPosition(0f)
+            snapToPosition(0f, end)
 
         } else {
             stopAnimation()
             setDragX(0f)
+            end?.invoke()
         }
     }
 
@@ -407,20 +408,22 @@ class DragView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : Fram
     interface Delegate {
 
         /**
-         * Return the top view, which will be the view that is dragged.
-         */
-        fun getDragViewTopView(dragView: DragView): View
-
-        /**
          * Called when the delegate is set, so its implementation can establish view references.
          * View width is NOT guaranteed to be set here. Wait for onSetup() to be called if width is needed.
          */
         fun onDragViewInit(dragView: DragView)
 
         /**
-         * Called when the view has been set up, and width has been set
+         * Called when the view has been layed out, and width has been set
          */
-        fun onDragViewSetup(dragView: DragView)
+        fun onDragViewLayout(dragView: DragView)
+
+        /**
+         * Return the top view, which will be the view that is dragged.
+         *
+         * This will be called exactly once when setting the delegate.
+         */
+        fun getDragViewTopView(dragView: DragView): View
 
         /**
          * If the drag view can be dragged to the specified direction
@@ -438,12 +441,16 @@ class DragView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : Fram
         /**
          * How much the drag view should respond to the drag.
          *
+         * @param direction The direction that the drag view has been dragged. either [DIRECTION_LEFT] or [DIRECTION_RIGHT].
+         * @param dragDirection The direction of the drag.
+         *  This is not the same as dragDirection, as it represents the change since last frame, instead of the absolute drag direction of the view.
+         *  E.g. if the view is open to the right, but is being dragged to the left to close it.
          * @param x0 The current position of the drag view, normalized between -1 and 1
          * @param dx The drag event dx, normalized between -1 and 1
          * @return the factor that the drag view should move relative to the drag event.
          * 1 to follow the drag, 0 to lock it in place. Can also be > 1 or < 0.
          */
-        fun getDragViewDragFactor(dragView: DragView, direction: Int, x0: Float, dx: Float): Float
+        fun getDragViewDragFactor(dragView: DragView, direction: Int, dragDirection: Int, x0: Float, dx: Float): Float
 
         /**
          * Called when the drag begins.

@@ -72,7 +72,7 @@ abstract class DragModule(val dragView: DragView, val moduleView: View, val dire
 
     /* Overridable methods */
 
-    open fun onSetup() {}
+    open fun onLayout() {}
 
     @CallSuper
     open fun onChanged(x0: Float, x1: Float, dragged: Boolean) {

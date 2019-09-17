@@ -16,6 +16,7 @@ abstract class DragModuleDelegate : DragView.Delegate {
 
     @SuppressLint("UseSparseArrays")
     private val dragModules = HashMap<Int, DragModule>()
+    private var openDragModule: DragModule? = null
 
     private var isTeasing: Boolean = false
     private val teaseInterpolator by lazy {
@@ -97,8 +98,8 @@ abstract class DragModuleDelegate : DragView.Delegate {
     }
 
     @CallSuper
-    override fun onDragViewSetup(dragView: DragView) = dragModules.values.forEach {
-        it.onSetup()
+    override fun onDragViewLayout(dragView: DragView) = dragModules.values.forEach {
+        it.onLayout()
     }
 
     @CallSuper
@@ -108,7 +109,7 @@ abstract class DragModuleDelegate : DragView.Delegate {
     override fun getDragViewMaxDrag(dragView: DragView, direction: Int): Float = dragModules[direction]?.maxDrag ?: 0f
 
     @CallSuper
-    override fun getDragViewDragFactor(dragView: DragView, direction: Int, x0: Float, dx: Float): Float = dragModules[direction]?.dragFactor(x0, dx)
+    override fun getDragViewDragFactor(dragView: DragView, direction: Int, dragDirection: Int, x0: Float, dx: Float): Float = dragModules[direction]?.dragFactor(x0, dx)
         ?: 1f
 
     override fun onDragViewDragBegin(dragView: DragView, direction: Int) {
@@ -123,7 +124,13 @@ abstract class DragModuleDelegate : DragView.Delegate {
 
     @CallSuper
     override fun onDragViewChanged(dragView: DragView, direction: Int, x0: Float, x1: Float, dragged: Boolean) {
-        dragModules[direction]?.onChanged(x0, x1, dragged)
+        val module = dragModules[direction]
+        if (module != openDragModule) {
+            openDragModule?.onChanged(x0, x1, dragged)
+            openDragModule = module
+        }
+
+        module?.onChanged(x0, x1, dragged)
     }
 
     @CallSuper

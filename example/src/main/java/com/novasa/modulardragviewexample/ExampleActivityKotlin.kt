@@ -87,6 +87,7 @@ class ExampleActivityKotlin : AppCompatActivity() {
 
             init {
                 dragView.delegate = delegate
+                dragView.allowCrossDrag = true
             }
         }
 
