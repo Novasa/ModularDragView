@@ -12,6 +12,7 @@ import android.widget.FrameLayout
 import androidx.core.view.doOnLayout
 import androidx.core.view.updateLayoutParams
 import kotlin.math.abs
+import kotlin.math.max
 
 /**
  * Created by mikkelschlager on 18/10/16.
@@ -388,7 +389,7 @@ class DragView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : Fram
         valueAnimator = ValueAnimator().also { a ->
 
             a.setObjectValues(currentDragX, x1)
-            a.duration = duration
+            a.duration = max(duration, 0L)
             a.interpolator = interpolator
             a.addUpdateListener { animation -> setDragX(animation.animatedValue as Float) }
             a.addListener(object : AnimatorListenerAdapter() {

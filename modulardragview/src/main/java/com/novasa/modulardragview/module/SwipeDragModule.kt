@@ -6,6 +6,7 @@ import android.view.animation.Interpolator
 import androidx.annotation.CallSuper
 import com.novasa.modulardragview.view.DragView
 import kotlin.math.abs
+import kotlin.math.max
 
 /**
  * A drag module that supports swiping the drag view
@@ -60,7 +61,7 @@ open class SwipeDragModule(dragView: DragView, moduleView: View, direction: Int)
 
         } else {
             val remaining = (1f - abs(x)) * dragWidth
-            duration = (remaining / velocity).toLong()
+            duration = max((remaining / velocity).toLong(), 0L)
             interp = null
         }
 
