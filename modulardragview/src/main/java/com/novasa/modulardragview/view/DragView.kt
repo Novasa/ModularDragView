@@ -18,7 +18,7 @@ import kotlin.math.max
  * Created by mikkelschlager on 18/10/16.
  */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
-class DragView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : FrameLayout(context, attrs, defStyleAttr) {
+open class DragView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : FrameLayout(context, attrs, defStyleAttr) {
 
     companion object {
 
