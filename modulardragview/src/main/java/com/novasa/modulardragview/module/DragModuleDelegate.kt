@@ -27,6 +27,15 @@ abstract class DragModuleDelegate : DragView.Delegate {
 
     fun getDragModule(direction: Int): DragModule? = dragModules[direction]
 
+    var enabled: Boolean
+        get() = dragView.isDragEnabled
+        set(value) {
+            dragView.isDragEnabled = value
+            if (!value) {
+                reset()
+            }
+        }
+
     @JvmOverloads
     fun reset(animate: Boolean = false) {
         cancelTease()
@@ -113,7 +122,6 @@ abstract class DragModuleDelegate : DragView.Delegate {
         ?: 1f
 
     override fun onDragViewDragBegin(dragView: DragView, direction: Int) {
-
     }
 
     @CallSuper
@@ -159,6 +167,5 @@ abstract class DragModuleDelegate : DragView.Delegate {
     }
 
     override fun onDragViewTopViewClick(dragView: DragView) {
-
     }
 }
